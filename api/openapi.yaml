@@ -1,0 +1,748 @@
+openapi: 3.0.3
+
+info:
+  title: API spec for pet-proj 'meeting-rooms'
+  description: API for 'meeting-rooms'
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Dev server
+
+paths:
+  /rooms:
+    post:
+      summary: Create room
+      operationId: createRoom
+      tags:
+        - rooms
+      x-roles:
+        - admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomCreateRequest"
+            example:
+              name: Orange Room
+              capacity: 1
+              floor: 2
+              equipment:
+                - projector
+                - whiteboard
+                - video_conf
+              is_active: true
+      responses:
+        '201':
+          description: Successful response with created room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: Orange Room
+                capacity: 10
+                floor: 2
+                equipment:
+                  - projector
+                  - whiteboard
+                  - video_conf
+                is_active: true
+                created_at: '2026-06-16T10:30:00Z'
+                updated_at: '2026-06-16T10:30:00Z'
+
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '401':
+          $ref: "#/components/responses/AuthError"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '409':
+          $ref: "#/components/responses/Conflict"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+    get:
+      summary: List rooms
+      operationId: listRooms
+      tags:
+        - rooms
+      parameters:
+        - name: floor
+          in: query
+          required: false
+          description: Filter rooms by floor
+          schema:
+            type: integer
+          example: 2
+
+        - name: min_capacity
+          in: query
+          required: false
+          description: Filter rooms by minimum capacity
+          schema:
+            type: integer
+            minimum: 1
+          example: 5
+
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+
+      responses:
+        '200':
+          description: Successful response with list of rooms
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rooms"
+              example:
+                - id: 550e8400-e29b-41d4-a716-446655440000
+                  name: Orange Room
+                  capacity: 1
+                  floor: 2
+                  equipment:
+                    - projector
+                  is_active: true
+                  created_at: '2026-06-16T10:30:00Z'
+                  updated_at: '2026-06-16T10:30:00Z'
+
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '401':
+          $ref: "#/components/responses/AuthError"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '409':
+          $ref: "#/components/responses/Conflict"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  /rooms/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Room id
+        schema:
+          type: string
+          format: uuid
+        example: 550e8400-e29b-41d4-a716-446655440000
+
+    get:
+      summary: Get room by id
+      operationId: getRoom
+      tags:
+        - rooms
+      responses:
+        '200':
+          description: Successful response with room
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                name: Orange Room
+                capacity: 10
+                floor: 2
+                equipment:
+                  - projector
+                  - whiteboard
+                  - video_conf
+                is_active: true
+                created_at: '2026-06-16T10:30:00Z'
+                updated_at: '2026-06-16T10:30:00Z'
+
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '401':
+          $ref: "#/components/responses/AuthError"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '409':
+          $ref: "#/components/responses/Conflict"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      summary: Delete room by id
+      operationId: deleteRoom
+      tags:
+        - rooms
+      x-roles:
+        - admin
+      responses:
+        '204':
+          description: Successfully deleted room
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  /bookings:
+    post:
+      summary: Create booking
+      operationId: createBooking
+      tags:
+        - bookings
+      x-roles:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCreateRequest"
+            example:
+              room_id: 550e8400-e29b-41d4-a716-446655440001
+              title: Team Planning
+              description: Weekly planning meeting
+              start_time: '2026-06-16T10:00:00Z'
+              end_time: '2026-06-16T11:00:00Z'
+              attendees_count: 1
+      responses:
+        '201':
+          description: Successful response with created booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+              example:
+                id: 550e8400-e29b-41d4-a716-446655440000
+                room_id: 550e8400-e29b-41d4-a716-446655440002
+                user_id: 550e8400-e29b-41d4-a716-446655440003
+                title: Meeting
+                description: For Arseniy
+                start_time: '2026-06-16T10:00:00Z'
+                end_time: '2026-06-16T11:00:00Z'
+                status: confirmed
+                attendees_count: 1
+                created_at: '2026-06-16T09:30:00Z'
+                updated_at: '2026-06-16T09:30:00Z'
+
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '401':
+          $ref: "#/components/responses/AuthError"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '409':
+          $ref: "#/components/responses/Conflict"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+    get:
+      summary: List bookings
+      operationId: listBookings
+      tags:
+        - bookings
+      parameters:
+        - name: room_id
+          in: query
+          required: false
+          description: Filter bookings by room id
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440002
+
+        - name: date_from
+          in: query
+          required: false
+          description: Filter bookings starting from this date and time
+          schema:
+            type: string
+            format: date-time
+          example: '2026-06-16T00:00:00Z'
+
+        - name: date_to
+          in: query
+          required: false
+          description: Filter bookings up to this date and time
+          schema:
+            type: string
+            format: date-time
+          example: '2026-06-17T00:00:00Z'
+
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+
+      responses:
+        '200':
+          description: Successful response with list of bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bookings"
+              example:
+                - id: 550e8400-e29b-41d4-a716-446655440000
+                  room_id: 550e8400-e29b-41d4-a716-446655440002
+                  user_id: 550e8400-e29b-41d4-a716-446655440003
+                  title: Meeting
+                  description: For Arseniy
+                  start_time: '2026-06-16T10:00:00Z'
+                  end_time: '2026-06-16T11:00:00Z'
+                  status: confirmed
+                  attendees_count: 1
+                  created_at: '2026-06-15T12:00:00Z'
+                  updated_at: '2026-06-15T12:00:00Z'
+
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '401':
+          $ref: "#/components/responses/AuthError"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '409':
+          $ref: "#/components/responses/Conflict"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  /bookings/my:
+    get:
+      summary: Get my bookings
+      operationId: getMyBookings
+      tags:
+        - bookings
+      x-roles:
+        - user
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+
+      responses:
+        '200':
+          description: Successful response with current user's bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bookings"
+              example:
+                - id: 550e8400-e29b-41d4-a716-446655440000
+                  room_id: 550e8400-e29b-41d4-a716-446655440002
+                  user_id: 550e8400-e29b-41d4-a716-446655440003
+                  title: Meeting
+                  description: For Arseniy
+                  start_time: '2026-06-16T10:00:00Z'
+                  end_time: '2026-06-16T11:00:00Z'
+                  status: confirmed
+                  attendees_count: 1
+                  created_at: '2026-06-15T12:00:00Z'
+                  updated_at: '2026-06-15T12:00:00Z'
+
+        '401':
+          $ref: "#/components/responses/AuthError"
+
+        '403':
+          $ref: "#/components/responses/Forbidden"
+
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  /bookings/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Booking id
+        schema:
+          type: string
+          format: uuid
+        example: 550e8400-e29b-41d4-a716-446655440000
+
+    delete:
+      summary: Cancel booking by id
+      operationId: cancelBooking
+      tags:
+        - bookings
+      responses:
+        '204':
+          description: Successfully cancelled booking
+        '404':
+          $ref: "#/components/responses/PageNotFound"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  /analytics/rooms:
+    get:
+      summary: Get room analytics
+      operationId: getRoomAnalytics
+      tags:
+        - analytics
+      x-roles:
+        - admin
+      responses:
+        '200':
+          description: Successful response with room analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomStatsList"
+              example:
+                - room_id: 550e8400-e29b-41d4-a716-446655440000
+                  room_name: Orange Room
+                  total_bookings: 10
+                  total_hours: 12
+                  busiest_day: '2026-06-16'
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  /health:
+    get:
+      summary: Check server health
+      operationId: checkServerHealth
+      tags:
+        - system
+      security: []
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              example:
+                status: OK
+
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of items to return
+      schema:
+        type: integer
+        minimum: 1
+        default: 20
+      example: 20
+
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: Number of items to skip
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      example: 0
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Room:
+      type: object
+      required:
+        - id
+        - name
+        - capacity
+        - floor
+        - equipment
+        - is_active
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          example: Orange Room
+        capacity:
+          type: integer
+          minimum: 1
+          example: 1
+        floor:
+          type: integer
+          example: 1
+        equipment:
+          type: array
+          items:
+            type: string
+          example:
+            - projector
+            - whiteboard
+            - video_conf
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-16T10:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-06-16T10:30:00Z'
+
+    Rooms:
+      type: array
+      items:
+        $ref: "#/components/schemas/Room"
+
+    RoomCreateRequest:
+      type: object
+      required:
+        - name
+        - capacity
+        - floor
+        - equipment
+        - is_active
+      properties:
+        name:
+          type: string
+          example: Orange Room
+        capacity:
+          type: integer
+          minimum: 1
+          example: 2
+        floor:
+          type: integer
+          example: 2
+        equipment:
+          type: array
+          items:
+            type: string
+          example:
+            - projector
+            - whiteboard
+            - video_conf
+        is_active:
+          type: boolean
+          example: true
+
+    RoomStats:
+      type: object
+      required:
+        - room_id
+        - room_name
+        - total_bookings
+        - total_hours
+        - busiest_day
+      properties:
+        room_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        room_name:
+          type: string
+          example: Orange Room
+        total_bookings:
+          type: integer
+          example: 52
+        total_hours:
+          type: number
+          example: 12.1
+        busiest_day:
+          type: string
+          format: date
+          example: '2026-06-16'
+    
+    RoomStatsList:
+      type: array
+      items:
+        $ref: "#/components/schemas/RoomStats"
+
+    Booking:
+      type: object
+      required:
+        - id
+        - room_id
+        - user_id
+        - title
+        - start_time
+        - end_time
+        - status
+        - attendees_count
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        room_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440002
+        user_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440003
+        title:
+          type: string
+          example: Meeting
+        description:
+          type: string
+          example: For Arseniy
+        start_time:
+          type: string
+          format: date-time
+          example: '2026-06-16T10:00:00Z'
+        end_time:
+          type: string
+          format: date-time
+          example: '2026-06-16T11:00:00Z'
+        status:
+          type: string
+          enum:
+            - confirmed
+            - cancelled
+            - completed
+          example: confirmed
+        attendees_count:
+          type: integer
+          minimum: 1
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-16T09:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-06-16T09:30:00Z'
+
+    Bookings:
+      type: array
+      items:
+        $ref: "#/components/schemas/Booking"
+
+    BookingCreateRequest:
+      type: object
+      required:
+        - room_id
+        - title
+        - start_time
+        - end_time
+      properties:
+        room_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Team Planning
+
+        description:
+          type: string
+          example: Weekly planning meeting
+
+        start_time:
+          type: string
+          format: date-time
+          example: '2026-06-16T10:00:00Z'
+
+        end_time:
+          type: string
+          format: date-time
+          example: '2026-06-16T11:00:00Z'
+
+        attendees_count:
+          type: integer
+          minimum: 1
+          default: 1
+          example: 5
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: OK
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Bad Request
+
+    AuthError:
+      description: Authorization error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Authorization error
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Forbidden
+
+    PageNotFound:
+      description: Page Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Page Not Found
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 409
+            message: Booking conflict
+
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 500
+            message: Internal Server Error
+
+security:
+  - bearerAuth: []
