@@ -13,7 +13,7 @@ type Postgres interface {
 	DeleteRoomById(id uuid.UUID) error
 	CreateBooking(input models.InputBooking) (*models.Booking, error)
 	GetListBookings(filter models.BookingFilter) ([]*models.Booking, error)
-	GetMyBookings(user_id uuid.UUID) ([]*models.Booking, error)
+	GetMyBookings(user_id uuid.UUID, filter models.MyBookingFilter) ([]*models.Booking, error)
 	DeleteMyBookingById(id uuid.UUID, user_id uuid.UUID) error
 	GetAnalytics() ([]*models.Analytics, error)
 }

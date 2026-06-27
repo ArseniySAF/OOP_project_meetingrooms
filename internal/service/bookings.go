@@ -32,7 +32,7 @@ func (ms *MeetingService) GetMyBookings(user_id uuid.UUID, filter models.MyBooki
 		return nil, err
 	}
 
-	bookings, err := ms.Store.GetMyBookings(user_id)
+	bookings, err := ms.Store.GetMyBookings(user_id, filter)
 	if err != nil {
 		return nil, err
 	}

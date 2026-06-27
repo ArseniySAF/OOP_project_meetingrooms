@@ -1,37 +1,59 @@
-
 package main
 
 import (
- "log"
- "meeting-rooms/config"
- "meeting-rooms/internal/api"
- "meeting-rooms/internal/middleware"
- "meeting-rooms/internal/service"
- "meeting-rooms/internal/storage"
- "net/http"
+	"context"
+	"errors"
+	"log"
+	"meeting-rooms/config"
+	"meeting-rooms/internal/api"
+	"meeting-rooms/internal/middleware"
+	"meeting-rooms/internal/service"
+	"meeting-rooms/internal/storage"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
- "github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
- repo, err := storage.NewPostgres()
- if err != nil {
-  log.Fatalf("failed to connect to postgres: %v", err)
- }
- defer repo.Close()
+	repo, err := storage.NewPostgres()
+	if err != nil {
+		log.Fatalf("failed to connect to postgres: %v", err)
+	}
+	defer repo.Close()
 
- service := service.NewMeetingService(repo)
- handler := api.NewServer(service)
+	service := service.NewMeetingService(repo)
+	handler := api.NewServer(service)
 
- r := chi.NewRouter()
- r.Use(middleware.JWTMiddleware)
+	r := chi.NewRouter()
+	r.Use(middleware.JWTMiddleware)
 
- httpHandler := api.HandlerFromMux(handler, r)
+	httpHandler := api.HandlerFromMux(handler, r)
 
- server := &http.Server{
-  Addr:    config.Load().Addr,
-  Handler: httpHandler,
- }
+	server := &http.Server{
+		Addr:    config.Load().Addr,
+		Handler: httpHandler,
+	}
 
- _ = server
+	go func() {
+		log.Printf("server started on port %s", config.Load().Port)
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("HTTP server error: %v", err)
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	shutdownCtx, cancelCtx := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelCtx()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
+	log.Println("\nGraceful shutdown complete.")
 }
