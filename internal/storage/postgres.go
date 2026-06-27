@@ -27,3 +27,7 @@ func NewPostgres() (*Postgres, error) {
 
 	return &Postgres{db: db}, nil
 }
+
+func (p *Postgres) Close() {
+	p.db.Close()
+}
