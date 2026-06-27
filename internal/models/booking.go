@@ -22,7 +22,7 @@ type Booking struct {
 
 type InputBooking struct {
 	RoomId         uuid.UUID
-	UserId         uuid.UUID // нет в requestBody
+	UserId         uuid.UUID // нет в requestBody | извелкает Middleware из claims
 	Title          string
 	Description    *string
 	StartTime      time.Time
@@ -34,4 +34,11 @@ type BookingFilter struct {
 	RoomId   *uuid.UUID
 	DateFrom *time.Time
 	DateTo   *time.Time
+	Limit    *int
+	Offset   *int
+}
+
+type MyBookingFilter struct {
+	Limit  *int
+	Offset *int
 }
