@@ -6,3 +6,12 @@ migrate-down:
 
 generate:
 	go tool oapi-codegen --config=oapi-codegen.yaml api/openapi.yaml
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+run-api:
+	go run ./cmd/api

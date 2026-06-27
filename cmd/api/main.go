@@ -19,6 +19,9 @@ import (
 )
 
 func main() {
+	cfg := config.Load()
+	_ = cfg
+
 	repo, err := storage.NewPostgres()
 	if err != nil {
 		log.Fatalf("failed to connect to postgres: %v", err)
@@ -31,7 +34,13 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.JWTMiddleware)
 
-	httpHandler := api.HandlerFromMux(handler, r)
+	httpHandler := api.HandlerWithOptions(
+		handler,
+		api.ChiServerOptions{
+			BaseRouter: r,
+			BaseURL:    "/api/v1",
+		},
+	)
 
 	server := &http.Server{
 		Addr:    config.Load().Addr,
